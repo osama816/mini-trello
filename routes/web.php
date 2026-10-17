@@ -14,6 +14,9 @@ Route::get('/', function () {
     ]);
 });
 
+// Application ping status check
+Route::get('/ping', fn () => response()->json(['pong' => true, 'timestamp' => now()]));
+
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 
