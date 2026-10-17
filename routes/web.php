@@ -14,6 +14,9 @@ Route::get('/', function () {
     ]);
 });
 
+// Health check endpoint for Docker container
+Route::get('/health', fn () => response()->json(['status' => 'healthy', 'env' => 'docker']));
+
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 
