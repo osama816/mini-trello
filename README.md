@@ -1,58 +1,129 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🗂️ Mini Trello — نظام إدارة المشاريع والمهام (Kanban System)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+نظام إدارة مشاريع ومهام تفاعلي متكامل تم بناؤه باستخدام **Laravel 11** و **Vue 3** مع **Inertia.js** و **Docker**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 التقنيات المستخدمة (Tech Stack)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Backend:** Laravel 11, PHP 8.3
+- **Architecture:** Service Layer Pattern, Form Requests, Policies, Events & Listeners
+- **Frontend:** Vue 3 (Composition API `<script setup>`), Inertia.js, Tailwind CSS
+- **Database:** MySQL 8.0, Eloquent ORM with Eager Loading (Zero N+1)
+- **Containerization:** Docker & Docker Compose (Nginx + PHP-FPM + MySQL)
+- **Testing:** PHPUnit / Pest Test Suite
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🗄️ تصميم قاعدة البيانات (Database ERD)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```text
+users
+├── id, name, email, password, timestamps
+└── [1:N] ──> projects
+└── [1:N] ──> tasks (assigned_to)
+└── [1:N] ──> comments
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+projects
+├── id, user_id (FK cascadeOnDelete), name, description
+├── deleted_at (SoftDeletes), timestamps
+└── [1:N] ──> tasks
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+tasks
+├── id, project_id (FK cascadeOnDelete), assigned_to (FK nullable -> users)
+├── title, description, status (todo / doing / done)
+├── due_date, deleted_at (SoftDeletes), timestamps
+├── INDEX(status, project_id)
+└── [N:M] ──> tags (عبر pivot: tag_task)
+└── [1:N] ──> comments
 
-## Agentic Development
+tags
+├── id, name (unique), color, timestamps
+└── [N:M] ──> tasks
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+tag_task (Pivot Table)
+├── id, task_id (FK cascade), tag_id (FK cascade)
+└── UNIQUE(task_id, tag_id)
 
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+comments
+├── id, task_id (FK cascade), user_id (FK cascade), body, timestamps
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## 💻 التشغيل المحلي السريع (Local Development)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 1. المتطلبات:
+- PHP >= 8.3
+- Composer
+- Node.js & NPM
+- MySQL
 
-## Code of Conduct
+### 2. خطوات التشغيل:
+```bash
+# تثبيت الاعتماديات
+composer install
+npm install
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# ضبط ملف البيئة
+cp .env.example .env
+php artisan key:generate
 
-## Security Vulnerabilities
+# تشغيل الـ Migrations وتوليد البيانات التجريبية
+php artisan migrate:fresh --seed
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# بناء ملفات الواجهة
+npm run build
+# أو في وضع التطوير:
+npm run dev
 
-## License
+# تشغيل السيرفر
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 🔑 بيانات تسجيل الدخول التجريبية (Demo Account):
+- **Email:** `test@example.com`
+- **Password:** `password`
+
+---
+
+## 🐳 التشغيل بواسطة Docker
+
+المشروع يحتوي على بيئة معزولة بالكامل عبر Docker تتكون من 3 حاويات:
+1. `mini_trello_app`: PHP-FPM 8.3
+2. `mini_trello_nginx`: Nginx Web Server يستقبل الطلبات على البورت `8080`
+3. `mini_trello_mysql`: MySQL 8.0 مع Persistent Volume
+
+### تشغيل المشروع بأمر واحد:
+```bash
+# 1. تشغيل الحاويات في الخلفية
+docker compose up -d
+
+# 2. بناء قاعدة البيانات والبيانات الوهمية داخل الحاوية
+docker compose exec app php artisan migrate --seed
+
+# 3. فتح التطبيق في المتصفح:
+# http://localhost:8080
+```
+
+---
+
+## 🧩 الهيكلية وأفضل الممارسات (Clean Architecture)
+
+- **Service Layer Pattern:** تم عزل الـ Business Logic داخل `app/Services/ProjectService.php` و `app/Services/TaskService.php` لإبقاء الـ Controllers رشيقة ومحصورة فقط في استقبال الـ Requests وتوجيه الـ Responses.
+- **Authorization & Security:** تطبيق `ProjectPolicy` لحماية البيانات، بحيث لا يمكن لأي مستخدم الوصول أو تعديل أو حذف أي مشروع لا يملكه.
+- **Form Requests:** التحقق من صحة المدخلات في `StoreTaskRequest`, `UpdateTaskRequest`, `StoreProjectRequest`.
+- **Events & Listeners:** إطلاق حدث `TaskAssigned` عند تعيين أو إعادة تعيين مهمة لشخص وتسجيلها عبر `LogTaskAssignment`.
+- **Eager Loading:** استخدام `with(['assignedUser', 'tags', 'comments.user'])` لمنع مشكلة N+1 Query Problem نهائياً.
+- **Frontend Kanban:** لوحة 3 أعمدة تفاعلية مع Drag & Drop فوري يحدّث الحالة بدون Reload عبر `router.patch` الخاص بـ Inertia.js.
+
+---
+
+## 🌿 شجرة الفروع (Git Branches):
+```text
+main           ← الـ Production النهائي (Tag: v1.0)
+  └─ develop   ← تجميع ومزامنة المميزات
+       ├─ feature/projects  (Database & Backend)
+       ├─ feature/tasks     (Vue 3 & Kanban Board)
+       └─ feature/docker    (Docker & Compose Setup)
+```

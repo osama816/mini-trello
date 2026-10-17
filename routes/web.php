@@ -14,7 +14,8 @@ Route::get('/', function () {
     ]);
 });
 
-// Application ping status check
+// Health & monitoring endpoints
+Route::get('/health', fn () => response()->json(['status' => 'healthy', 'env' => 'docker']));
 Route::get('/ping', fn () => response()->json(['pong' => true, 'timestamp' => now()]));
 
 use App\Http\Controllers\ProjectController;
